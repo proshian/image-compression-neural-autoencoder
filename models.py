@@ -195,7 +195,15 @@ class SimpleResidualDecoder8x(nn.Module):
 
 
 ############# Encoders
-    
+
+# class Encoder(nn.Module):
+#     def __init__(self,
+#                  backbonde: nn.Module,
+#                  feature_extraction: nn.Module,
+#                  normalising_activation: nn.Module = nn.Sigmoid(),
+#                  ):
+#         self.encoder = 
+#         super().__init__()
 
 def resnet_encoder_constructor(resnet):
     return nn.Sequential(
