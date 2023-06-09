@@ -10,46 +10,7 @@ from torchvision.models import (alexnet,
                                 resnet101)
 
 
-########### Base class
-
-class NeuralImageCompressor(nn.Module):
-    def __init__(self,
-                 encoder: nn.Module,
-                 decoder: nn.Module,
-                 normalising_activation: nn.Module = nn.Sigmoid(),
-                 B: int = 1):
-        super().__init__()
-        self.encoder = encoder
-        self.decoder = decoder
-        self.normalising_activation = normalising_activation
-        self.B = B
-            
-    def _get_quantization_error(self, shape: Tuple[int, ...]):
-        mean = torch.full(shape, -0.5)
-        std = torch.full(shape, 0.5)
-        quan_err = 0.5**self.B * torch.normal(mean = mean, std = std)
-        return quan_err
-    
-    def freeze_encoder(self):
-        for param in self.encoder.parameters():
-            param.requires_grad = False
-    
-    def unfreeze_encoder(self):
-        for param in self.encoder.parameters():
-            param.requires_grad = True
-    
-    def forward(self, x):
-        out = self.encoder(x)
-        out = self.normalising_activation(out)
-        quant_err = self._get_quantization_error(out.shape).to(out.device)
-        out = out + quant_err
-        out = self.decoder(out)
-        return out
-
-
-
 ############### Blocks
-
 
 class DoubleConv(nn.Module):
     """(convolution => [BN] => ReLU) * 2"""
@@ -146,6 +107,7 @@ class SequentialDecoder8x(nn.Module):
 
 
 
+
 class SimpleResidualDecoder8x(nn.Module):
     def __init__(self, in_channels, up_func_name = "upsample"):
         super().__init__()
@@ -158,7 +120,8 @@ class SimpleResidualDecoder8x(nn.Module):
             decoder_modules.append(
                 SimpleResidualUpsampleDoubleConv(
                     in_channels=in_channels,
-                    out_channels=out_channels)
+                    out_channels=out_channels,
+                    up_func_name=up_func_name)
             )
             in_channels = out_channels
 
@@ -194,18 +157,9 @@ class SimpleResidualDecoder8x(nn.Module):
 
 
 
-############# Encoders
+############ Encoder backbones
 
-# class Encoder(nn.Module):
-#     def __init__(self,
-#                  backbonde: nn.Module,
-#                  feature_extraction: nn.Module,
-#                  normalising_activation: nn.Module = nn.Sigmoid(),
-#                  ):
-#         self.encoder = 
-#         super().__init__()
-
-def resnet_encoder_constructor(resnet):
+def resnet_encoder_backbone_constructor(resnet: ResNet):
     return nn.Sequential(
         resnet.conv1,
         resnet.bn1,
@@ -217,18 +171,81 @@ def resnet_encoder_constructor(resnet):
         resnet.layer4)
 
 
-############# NeuralImageCompressor (Autoencoders)
+############# Encoders
+
+class Encoder(nn.Module):
+    def __init__(self,
+                 backbone: nn.Module,
+                 feature_extraction: nn.Module,
+                 normalising_activation: nn.Module = nn.Sigmoid(),
+                 freeze_backbone = False
+                 ):
+        super().__init__()
+        self.backbone = backbone
+        self.feature_extraction = feature_extraction
+        self.normalising_activation = normalising_activation
+        if freeze_backbone:
+            self.freeze_backbone()
+    
+    def freeze_backbone(self):
+        for param in self.backbone.parameters():
+            param.requires_grad = False
+    
+    def unfreeze_backbone(self):
+        for param in self.backbone.parameters():
+            param.requires_grad = True
+
+    def forward(self, x):
+        out = self.backbone(x)
+        out = self.feature_extraction(out)
+        out = self.normalising_activation(out)
+        return out
+
+
+
+def create_resnet_encoder(resnet: ResNet, normalising_activation: nn.Module = nn.Sigmoid(),):
+    return Encoder(
+        backbone = resnet_encoder_backbone_constructor(resnet),
+        feature_extraction = nn.Identity(),
+        normalising_activation = normalising_activation
+    )
+
+
+
+############# NeuralImageCompressors (Autoencoders)
+
+class NeuralImageCompressor(nn.Module):
+    def __init__(self,
+                 encoder: Encoder,
+                 decoder: nn.Module,
+                 B: int = 1):
+        super().__init__()
+        self.encoder = encoder
+        self.decoder = decoder
+        self.B = B
+            
+    def _get_quantization_error(self, shape: Tuple[int, ...]):
+        mean = torch.full(shape, -0.5)
+        std = torch.full(shape, 0.5)
+        quan_err = 0.5**self.B * torch.normal(mean = mean, std = std)
+        return quan_err
+    
+    def forward(self, x):
+        out = self.encoder(x)
+        quant_err = self._get_quantization_error(out.shape).to(out.device)
+        out = out + quant_err
+        out = self.decoder(out)
+        return out
 
 
 def create_resnet_autoencoder(resnet: ResNet, decoder = None, decoder_in_channels: int = 512,
                               normalising_activation: nn.Module = nn.Sigmoid(), B: int = 16,
                               up_func_name = "upsample"):
-    resnet_encoder = resnet_encoder_constructor(resnet)
+    resnet_encoder = create_resnet_encoder(resnet, normalising_activation)
     if decoder is None:
         decoder = SimpleResidualDecoder8x(decoder_in_channels, up_func_name = up_func_name)
-    resnet_autoencoder = NeuralImageCompressor(resnet_encoder, decoder, normalising_activation, B)
+    resnet_autoencoder = NeuralImageCompressor(resnet_encoder, decoder, B)
     return resnet_autoencoder
-
 
 
 

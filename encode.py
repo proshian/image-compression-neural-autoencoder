@@ -15,26 +15,24 @@ def parse_args() -> argparse.Namespace:
                         help = "",
                         default='6')
 
-    parser.add_argument('-model_name', '-m', type=str,
+    parser.add_argument('--model_name', '-m', type=str,
                         help = '',
                         default='resnet18_autoencoder')
+    
+    parser.add_argument('--model_weights', '-w', type=str,
+                        help = '',
+                        default='weights\\residual_decoder__upsample__B_6__63_epochs_2023-06-08T05_56.pt')
 
     args = parser.parse_args()
     
     return args
 
+
 if __name__ == "__main__":
     args = parse_args()
-    
-    B = 2
-    LOAD_PATH = "weights\\residual_decoder__upsample__B_6__63_epochs_2023-06-08T05_56.pt"
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    if
-    up_func_name = "upsample"
-    resnet_autoencoder = create_resnet_autoencoder(
-        resnet18,
-        up_func_name = up_func_name,
-        B=B,
-    ).to(device)
+    if args.model_name == "resnet18_autoencoder":
+        print(args)
+        
