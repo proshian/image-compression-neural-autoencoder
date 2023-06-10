@@ -15,7 +15,8 @@ from torchvision.models import (alexnet,
 class DoubleConv(nn.Module):
     """(convolution => [BN] => ReLU) * 2"""
 
-    def __init__(self, in_channels, out_channels, mid_channels=None):
+    def __init__(self, in_channels, out_channels, mid_channels=None,
+                 last_activation: nn.Module = nn.ReLU(inplace=True)):
         super().__init__()
         if mid_channels is None:
             mid_channels = out_channels
@@ -25,7 +26,7 @@ class DoubleConv(nn.Module):
             nn.ReLU(inplace=True),
             nn.Conv2d(mid_channels, out_channels, kernel_size=3, padding=1, bias=False),
             nn.BatchNorm2d(out_channels),
-            nn.ReLU(inplace=True)
+            last_activation
         )
         
     def forward(self, img: torch.Tensor):
@@ -33,12 +34,16 @@ class DoubleConv(nn.Module):
     
     
 class SimpleResidualUpsampleDoubleConv(nn.Module):
-    def __init__(self, in_channels, out_channels, mid_channels=None, up_func_name = "upsample"):
+    def __init__(self, in_channels, out_channels,
+                 mid_channels=None, up_func_name = "upsample",
+                 last_activation = nn.ReLU(inplace = True)):
         super().__init__()
         if mid_channels is None:
             mid_channels = out_channels
-        self.double_conv = DoubleConv(in_channels, out_channels)
-        self.upscale = self.make_upscaler(in_channels, out_channels, up_func_name)
+        self.double_conv = DoubleConv(
+            in_channels, out_channels, last_activation = last_activation)
+        self.upscale = self.make_upscaler(
+            in_channels,out_channels, up_func_name)
         self.conv_to_match_dims = nn.ConvTranspose2d(
                 in_channels, out_channels, kernel_size=2, stride=2)
 
@@ -68,14 +73,15 @@ class SimpleResidualUpsampleDoubleConv(nn.Module):
 ############### Decoders
 
 
-class SequentialDecoder8x(nn.Module):
-    def __init__(self, in_channels, up_func_name = "deconv"):
+class SequentialDecoder32x(nn.Module):
+    def __init__(self, in_channels, up_func_name = "deconv",
+                 last_activation: nn.Module = nn.ReLU(inplace=True)):
         super().__init__()
         out_chan_nums = [512, 256, 128, 64, 3]
         
         decoder_modules = []
 
-        for out_channels in out_chan_nums:
+        for out_channels in out_chan_nums[:-1]:
             # мб было бы красивее здесь создавать upscaler
             decoder_modules.append(
                 nn.Sequential(
@@ -84,6 +90,15 @@ class SequentialDecoder8x(nn.Module):
                 )
             )
             in_channels = out_channels
+
+        decoder_modules.append(
+            nn.Sequential(
+                self.make_upscaler(in_channels, in_channels, up_func_name),
+                DoubleConv(in_channels=in_channels,
+                           out_channels=out_chan_nums[-1],
+                           last_activation=last_activation),
+            )
+        )
 
         self.decoder = nn.Sequential(*decoder_modules)
     
@@ -107,15 +122,15 @@ class SequentialDecoder8x(nn.Module):
 
 
 
-
-class SimpleResidualDecoder8x(nn.Module):
-    def __init__(self, in_channels, up_func_name = "upsample"):
+class SimpleResidualDecoder32x(nn.Module):
+    def __init__(self, in_channels, up_func_name = "upsample",
+                 last_activation: nn.Module = nn.ReLU(inplace=True)):
         super().__init__()
         out_chan_nums = [512, 256, 128, 64, 3]
         
         decoder_modules = []
 
-        for out_channels in out_chan_nums:
+        for out_channels in out_chan_nums[:-1]:
             # мб было бы красивее здесь создавать upscaler
             decoder_modules.append(
                 SimpleResidualUpsampleDoubleConv(
@@ -125,6 +140,14 @@ class SimpleResidualDecoder8x(nn.Module):
             )
             in_channels = out_channels
 
+        decoder_modules.append(
+            SimpleResidualUpsampleDoubleConv(
+                in_channels=in_channels,
+                out_channels=out_chan_nums[-1],
+                up_func_name=up_func_name,
+                last_activation=last_activation)
+        )
+
         self.decoder = nn.Sequential(*decoder_modules)
     
     def forward(self, img: torch.Tensor):
@@ -132,7 +155,7 @@ class SimpleResidualDecoder8x(nn.Module):
 
 
 
-# def simple_decoder_8x_upsample_constructor(in_chan_num):
+# def simple_decoder_32x_upsample_constructor(in_chan_num):
 #     out_chan_nums = [512, 256, 128, 64, 3]
 
 #     decoder_modules = []
@@ -157,9 +180,10 @@ class SimpleResidualDecoder8x(nn.Module):
 
 
 
+
 ############ Encoder backbones
 
-def resnet_encoder_backbone_constructor(resnet: ResNet):
+def create_resnet_encoder_backbone(resnet: ResNet):
     return nn.Sequential(
         resnet.conv1,
         resnet.bn1,
@@ -203,10 +227,13 @@ class Encoder(nn.Module):
 
 
 
-def create_resnet_encoder(resnet: ResNet, normalising_activation: nn.Module = nn.Sigmoid(),):
-    return Encoder(
-        backbone = resnet_encoder_backbone_constructor(resnet),
+def create_resnet_encoder(
+        resnet: ResNet,
         feature_extraction = nn.Identity(),
+        normalising_activation: nn.Module = nn.Sigmoid()):
+    return Encoder(
+        backbone = create_resnet_encoder_backbone(resnet),
+        feature_extraction = feature_extraction,
         normalising_activation = normalising_activation
     )
 
@@ -238,15 +265,16 @@ class NeuralImageCompressor(nn.Module):
         return out
 
 
-def create_resnet_autoencoder(resnet: ResNet, decoder = None, decoder_in_channels: int = 512,
+def create_resnet_autoencoder(resnet: ResNet, autoenc_feat_extract: nn.Module = nn.Identity(),
+                              decoder = None, decoder_in_channels: int = 512,
                               normalising_activation: nn.Module = nn.Sigmoid(), B: int = 16,
                               up_func_name = "upsample"):
-    resnet_encoder = create_resnet_encoder(resnet, normalising_activation)
+    resnet_encoder = create_resnet_encoder(
+        resnet, autoenc_feat_extract, normalising_activation)
     if decoder is None:
-        decoder = SimpleResidualDecoder8x(decoder_in_channels, up_func_name = up_func_name)
+        decoder = SimpleResidualDecoder32x(decoder_in_channels, up_func_name = up_func_name)
     resnet_autoencoder = NeuralImageCompressor(resnet_encoder, decoder, B)
     return resnet_autoencoder
-
 
 
 ## AutoencoderAlexNet was not used

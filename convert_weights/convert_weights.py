@@ -4,7 +4,7 @@ import os
 from typing import List
 
 import torch
-from torchvision.models import resnet18, ResNet18_Weights
+from torchvision.models import resnet18
 import matplotlib.pyplot as plt
 import skimage
 from PIL import Image
@@ -19,7 +19,7 @@ def get_old_model(src_w_path,  device = None, up_func_name = "upsample", B = 6):
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     resnet_autoencoder = dm.create_resnet_autoencoder(
-        resnet18(weights=ResNet18_Weights.DEFAULT),
+        resnet18(),
         up_func_name = up_func_name,
         B=B,
     ).to(device)
@@ -31,7 +31,7 @@ def get_new_model(device = None, up_func_name = "upsample", B = 6):
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     resnet_autoencoder = m.create_resnet_autoencoder(
-        resnet18(weights=ResNet18_Weights.DEFAULT),
+        resnet18(),
         up_func_name = up_func_name,
         B=B,
     ).to(device)
