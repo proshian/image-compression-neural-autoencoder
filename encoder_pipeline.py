@@ -56,6 +56,7 @@ imagenet_normalize = transforms.Normalize(IMAGENET_MEAN, IMAGENET_STD)
 
 
 inference_data_transform = transforms.Compose([
+    # PadDivisibleBy32(),
     transforms.ToTensor(),
     imagenet_normalize
 ])
@@ -63,7 +64,6 @@ inference_data_transform = transforms.Compose([
 
 def img_path_to_model_input(img_path: str, inference_data_transform = inference_data_transform):
     image = Image.fromarray(skimage.io.imread(img_path))
-    image = (image)
     image = inference_data_transform(image)
     return image
 
@@ -99,25 +99,20 @@ def encoder_pipeline(encoder, img_path: str, B: int,
                      compressed_img_path: str = None,
                      looseless_compressor: LooselessCompressor = Huffman()):
     if compressed_img_path is None:
-        script_dir = os.path.dirname(__file__)
-        rel_compressed_img_path = f"{os.path.splitext(img_path)[0]}.neural"
-        compressed_img_path = os.path.join(
-            script_dir, rel_compressed_img_path)
+        compressed_img_path = f"{os.path.splitext(img_path)[0]}.neural"
     
     if compressor_state_path is None:
-        rel_compressor_state_path = f"CS_{img_path}__B_{B}"
-        compressor_state_path = os.path.join(
-            script_dir, rel_compressor_state_path)
+        compressor_state_path = f"{img_path}__CS__B_{B}"
 
     encoder.eval()
     img = img_path_to_model_input(img_path)
     unsqueezed = img.unsqueeze(0)
-    out = encoder(unsqueezed)
-    out = quantize(out, B)
-    # flat_out = out.flatten().cpu().detach().numpy()
-    flat_out = [int(x) for x in out.flatten()]
+    encoder_out = encoder(unsqueezed)
+    quantized = quantize(encoder_out, B)
+    # flat_out = quantized.flatten().cpu().detach().numpy()
+    flat_out = [int(x) for x in quantized.flatten()]
     looseless_compressor.init_from_sequence(flat_out)
     looseless_compressor.save_state_to_file(compressor_state_path)
     encoded = looseless_compressor.encode(flat_out)
     save_binary_string_to_file(encoded, compressed_img_path)
-    return encoded
+    return encoder_out, encoded  # for debug purposes only
