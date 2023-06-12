@@ -30,9 +30,6 @@ def decode_binary_file(filename):
     return str_with_padding[:pad_end]
 
 
-    decoder = get_decoder(model_name, B)
-
-
 def decoder_pipeline(decoder, compressed_img_path: str, B: int,
                      compressor_state_path: str = None,
                      decoder_output_path: str = None,

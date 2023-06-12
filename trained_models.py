@@ -4,6 +4,7 @@ import torch
 
 from models import create_resnet_encoder, SimpleResidualDecoder32x_ABS
 
+
 resnet18x32__512ch__abs__sigmoid__no_last_activation = {
     "creation": {
         "encoder": lambda: create_resnet_encoder(
@@ -23,8 +24,6 @@ resnet18x32__512ch__abs__sigmoid__no_last_activation = {
     }
 }
 
-
-
 resnet18x32__512ch__abs__relu__no_last_activation = {
     "creation": {
         "encoder": lambda: create_resnet_encoder(
@@ -33,21 +32,37 @@ resnet18x32__512ch__abs__relu__no_last_activation = {
             512, "upsample", nn.ReLU())
     },
     "weights": {
-        "B6": {
-            "encoder": 'weights/resnet_autoencoder_abs/'
-                'encoder__resnet_autoencoder__512x16x16__upsample__B_6__' \
-                '63_epochs__last_relu__2023-06-08T05_56.pt',
-            "decoder": 'weights/resnet_autoencoder_abs/'
-                'decoder__resnet_autoencoder__512x16x16__upsample__B_6__' \
-                '63_epochs__last_relu__2023-06-08T05_56.pt',
+        "B1": {
+            "encoder": 'weights/resnet_autoencoder_abs/' \
+                'encoder__resnet_autoencoder__512x16x16__upsample__' \
+                'B_1__6_epochs__last_relu__2023-06-12T19_54.pt',
+            "decoder": 'weights/resnet_autoencoder_abs/' \
+                'decoder__resnet_autoencoder__512x16x16__upsample__' \
+                'B_1__6_epochs__last_relu__2023-06-12T19_54.pt',
         },
         "B2": {
             "encoder": 'weights/resnet_autoencoder_abs/' \
-                'encoder__resnet_autoencoder__512x16x16__upsample__B_2__' \
-                '6_epochs__last_relu__2023-06-08T12_35.pt',
+                'encoder__resnet_autoencoder__512x16x16__upsample__' \
+                'B_2__6_epochs__last_relu__2023-06-08T12_35.pt',
             "decoder": 'weights/resnet_autoencoder_abs/' \
-                'decoder__resnet_autoencoder__512x16x16__upsample__B_2__' \
-                '6_epochs__last_relu__2023-06-08T12_35.pt',
+                'decoder__resnet_autoencoder__512x16x16__upsample__' \
+                'B_2__6_epochs__last_relu__2023-06-08T12_35.pt',
+        },
+        "B4": {
+            "encoder": 'weights/resnet_autoencoder_abs/' \
+                'encoder__resnet_autoencoder__512x16x16__upsample__' \
+                'B_4__6_epochs__last_relu__2023-06-12T19_29.pt',
+            "decoder": 'weights/resnet_autoencoder_abs/' \
+                'decoder__resnet_autoencoder__512x16x16__upsample__' \
+                'B_4__6_epochs__last_relu__2023-06-12T19_29.pt',
+        },
+        "B6": {
+            "encoder": 'weights/resnet_autoencoder_abs/'
+                'encoder__resnet_autoencoder__512x16x16__upsample__' \
+                'B_6__63_epochs__last_relu__2023-06-08T05_56.pt',
+            "decoder": 'weights/resnet_autoencoder_abs/'
+                'decoder__resnet_autoencoder__512x16x16__upsample__' \
+                'B_6__63_epochs__last_relu__2023-06-08T05_56.pt',
         },
     }
 }
