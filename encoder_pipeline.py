@@ -56,6 +56,8 @@ imagenet_normalize = transforms.Normalize(IMAGENET_MEAN, IMAGENET_STD)
 
 
 inference_data_transform = transforms.Compose([
+    # If we use resnet autoencoder the image size should be a multiple of 32.
+    # Otherwise the decoded shape would be different from original.
     # PadDivisibleBy32(),
     transforms.ToTensor(),
     imagenet_normalize
