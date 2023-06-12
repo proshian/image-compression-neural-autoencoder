@@ -17,7 +17,7 @@ resnet18x32__512ch__abs__sigmoid__no_last_activation = {
                 'encoder__resnet_autoencoder__512x16x16__upsample__B_6__' \
                 '66_epochs__2023-06-10T00_39.pt',
             "decoder": 'weights/resnet_autoencoder_abs/' \
-                'encoder__resnet_autoencoder__512x16x16__upsample__B_6__' \
+                'decoder__resnet_autoencoder__512x16x16__upsample__B_6__' \
                 '66_epochs__2023-06-10T00_39.pt',
         }
     }
@@ -39,6 +39,6 @@ def get_encoder(model_name: str, B: int):
 def get_decoder(model_name: str, B: int):
     model_dict = model_dicts[model_name]
     decoder = model_dict["creation"]["decoder"]()
-    weights = model_dict["weights"][f"b{B}"]["decoder"]
+    weights = model_dict["weights"][f"B{B}"]["decoder"]
     decoder.load_state_dict(torch.load(weights))
     return decoder

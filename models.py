@@ -116,6 +116,7 @@ class SequentialDecoder32x(nn.Module):
                  last_activation: nn.Module = nn.Sigmoid()):
         super().__init__()
         out_chan_nums = [512, 256, 128, 64, 3]
+        self.in_channels = in_channels
         
         decoder_modules = []
 
@@ -165,6 +166,7 @@ class SimpleResidualDecoder32x(nn.Module):
                  last_activation: nn.Module = nn.Sigmoid()):
         super().__init__()
         out_chan_nums = [512, 256, 128, 64, 3]
+        self.in_channels = in_channels
         
         decoder_modules = []
 
@@ -197,6 +199,7 @@ class SimpleResidualDecoder32x_ABS(nn.Module):
     def __init__(self, in_channels, up_func_name = "upsample",
                  last_activation: nn.Module = nn.Sigmoid()):
         super().__init__()
+        self.in_channels = in_channels
         out_chan_nums = [512, 256, 128, 64, 3]
         
         decoder_modules = []
