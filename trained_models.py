@@ -23,9 +23,40 @@ resnet18x32__512ch__abs__sigmoid__no_last_activation = {
     }
 }
 
+
+
+resnet18x32__512ch__abs__relu__no_last_activation = {
+    "creation": {
+        "encoder": lambda: create_resnet_encoder(
+            resnet18(), nn.Identity(), nn.Sigmoid()), 
+        "decoder": lambda: SimpleResidualDecoder32x_ABS(
+            512, "upsample", nn.ReLU())
+    },
+    "weights": {
+        "B6": {
+            "encoder": 'weights/resnet_autoencoder_abs/'
+                'encoder__resnet_autoencoder__512x16x16__upsample__B_6__' \
+                '63_epochs__last_relu__2023-06-08T05_56.pt',
+            "decoder": 'weights/resnet_autoencoder_abs/'
+                'decoder__resnet_autoencoder__512x16x16__upsample__B_6__' \
+                '63_epochs__last_relu__2023-06-08T05_56.pt',
+        },
+        "B2": {
+            "encoder": 'weights/resnet_autoencoder_abs/' \
+                'encoder__resnet_autoencoder__512x16x16__upsample__B_2__' \
+                '6_epochs__last_relu__2023-06-08T12_35.pt',
+            "decoder": 'weights/resnet_autoencoder_abs/' \
+                'decoder__resnet_autoencoder__512x16x16__upsample__B_2__' \
+                '6_epochs__last_relu__2023-06-08T12_35.pt',
+        },
+    }
+}
+
+
 model_dicts = {
     "resnet18x32__512ch__abs__sigmoid__no_last_activation": resnet18x32__512ch__abs__sigmoid__no_last_activation,
-    "default": resnet18x32__512ch__abs__sigmoid__no_last_activation
+    'resnet18x32__512ch__abs__relu__no_last_activation': resnet18x32__512ch__abs__relu__no_last_activation,
+    "default": resnet18x32__512ch__abs__relu__no_last_activation
 }
 
 
