@@ -7,6 +7,7 @@ from torchvision.models import resnet18
 from models import create_resnet_encoder
 from encoder_pipeline import encoder_pipeline
 from looseless_compressors import Huffman 
+from trained_models import get_encoder
 
 
 def parse_args() -> argparse.Namespace:
@@ -14,29 +15,22 @@ def parse_args() -> argparse.Namespace:
         prog='encode',
         description='encodes images')
 
+    parser.add_argument('--image_path', '-i', type=str,
+                        help = 'image_to_encode')
+    
     parser.add_argument('-B', type=int,
                         help = '',
                         default='6')
 
-    parser.add_argument('--encoder_name', '-m', type=str,
+    parser.add_argument('--model_name', '-m', type=str,
                         help = '',
-                        default='encoder__resnet18__32x_512')
+                        default='default')
     
-    parser.add_argument(
-        '--encoder_weights', '-w', type=str,
-        help = '',
-        default='weights/resnet_autoencoder_abs/' \
-            'encoder__resnet_autoencoder__512x16x16__upsample__B_6__' \
-            '66_epochs__2023-06-10T00_39.pt')
-
     parser.add_argument('--device', '-d', type=str,
                         help = '',
                         default='cpu')
-    
-    parser.add_argument('--image_path', '-i', type=str,
-                        help = 'image_to_encode')
 
-    parser.add_argument('--compressor_state_path', '-c',
+    parser.add_argument('--compressor_state_path', '-s',
                         type=str, help = '', default=None)
     
     parser.add_argument('--compressed_img_path', '-r',
@@ -50,18 +44,15 @@ def parse_args() -> argparse.Namespace:
     return args
 
 
+
 if __name__ == "__main__":
     args = parse_args()
 
     device = torch.device(args.device)
 
-    if args.encoder_name == "encoder__resnet18__32x_512":
-        encoder = create_resnet_encoder(
-            resnet18(), nn.Identity(), nn.Sigmoid())
-    
-    encoder.load_state_dict(torch.load(args.encoder_weights))
+    encoder = get_encoder(args.model_name, args.B)
     encoder.eval()
-
+    
     if args.looseless_compressor_name == "huffman":
         looseless_compressor = Huffman()
     else:
@@ -71,5 +62,3 @@ if __name__ == "__main__":
     encoder_out, encoded = encoder_pipeline(
         encoder, args.image_path, args.B, args.compressor_state_path,
         args.compressed_img_path, looseless_compressor)
-    
-    out = encoder_pipeline(encoder, args.image_path, args.B)
