@@ -9,7 +9,7 @@ from trained_models import get_decoder
 from looseless_compressors import LooselessCompressor, Huffman
 
 
-def denormalize(img: torch.Tensor, means: List[int], stds: List[int]):
+def denormalize(img: torch.Tensor, means: List[float], stds: List[float]):
     result = torch.zeros_like(img)
     for i, (chan, mean, std) in enumerate(zip(img, means, stds)):
         result[i] = chan * std + mean
@@ -28,6 +28,13 @@ def decode_binary_file(filename):
         format(byte, '08b') for byte in binary_data)
     pad_end = str_with_padding.rfind('1')
     return str_with_padding[:pad_end]
+
+
+def get_quant_error(shape, B):
+    mean = torch.full(shape, -0.5)
+    std = torch.full(shape, 0.5)
+    quan_err = 0.5**B * torch.normal(mean = mean, std = std)
+
 
 
 def decoder_pipeline(decoder, compressed_img_path: str, B: int,
@@ -54,7 +61,9 @@ def decoder_pipeline(decoder, compressed_img_path: str, B: int,
     encoder_output = encoder_output_flat.reshape(
         1, decoder.in_channels, height, width)
     
-    decoded_tensor_imagenet_norm = decoder(encoder_output.type(torch.float32))
+    # decoded_tensor_imagenet_norm = decoder(encoder_output.type(torch.float32))
+    decoded_tensor_imagenet_norm = decoder(
+        encoder_output.type(torch.float32) + get_quant_error(encoder_output.shape, B))
 
     decoded_tensor = denormalize_imagenet(
         decoded_tensor_imagenet_norm.squeeze(0))

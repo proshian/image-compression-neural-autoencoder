@@ -5,7 +5,7 @@ from typing import Dict, Any
 
 
 class LooselessCompressor:
-    def __init__(self, uncompressed_sequence = None, file_path = None):
+    def __init__(self, uncompressed_sequence = None, file_path: str = None):
         if file_path is not None:
             self.init_from_file(file_path)
         elif uncompressed_sequence is not None:

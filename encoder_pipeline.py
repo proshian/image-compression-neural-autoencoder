@@ -27,7 +27,7 @@ class PadDivisibleBy32(object):
         Returns:
             PIL Image: Padded image.
         """
-        return pad(img, self._get_padding(img), self.padding_mode, self.fill)
+        return pad(img, self._get_padding(img), self.fill, self.padding_mode)
     
     def __repr__(self):
         return self.__class__.__name__ + '(padding={0}, fill={1}, padding_mode={2})'.\
@@ -64,7 +64,8 @@ inference_data_transform = transforms.Compose([
 ])
 
 
-def img_path_to_model_input(img_path: str, inference_data_transform = inference_data_transform):
+def img_path_to_model_input(img_path: str,
+                            inference_data_transform = inference_data_transform) -> torch.Tensor:
     image = Image.fromarray(skimage.io.imread(img_path))
     image = inference_data_transform(image)
     return image

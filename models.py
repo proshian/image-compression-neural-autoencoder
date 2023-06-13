@@ -75,7 +75,7 @@ class SimpleResidualUpsampleDoubleConv(nn.Module):
 class SimpleResidualUpsampleDoubleConv_ABS(nn.Module):
     def __init__(self, in_channels, out_channels,
                  mid_channels=None, up_func_name = "upsample",
-                 last_activation = nn.ReLU(inplace = True)):
+                 last_activation: nn.Module = nn.ReLU(inplace = True)):
         super().__init__()
         if mid_channels is None:
             mid_channels = out_channels
