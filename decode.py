@@ -13,7 +13,7 @@ def parse_args() -> argparse.Namespace:
         description='encodes images')
 
     parser.add_argument('--compressed_img_path', '-i', type=str,
-                        help = 'image_to_encode')
+                        help = 'compressed image to be decoded')
     
     parser.add_argument('-B', type=int,
                         help = '',

@@ -49,11 +49,12 @@ def decoder_pipeline(decoder, compressed_img_path: str, B: int,
                      compressor_state_path: str = None,
                      decoder_output_path: str = None,
                      looseless_compressor: LooselessCompressor = Huffman()):
+    compressed_img_path_no_ext = os.path.splitext(compressed_img_path)[0]
     if decoder_output_path is None:
-        decoder_output_path = f"{os.path.splitext(compressed_img_path)[0]}.decoder_output"
+        decoder_output_path = f"{compressed_img_path_no_ext}_decoder_output.bmp"
     
     if compressor_state_path is None:
-        compressor_state_path = f"{compressed_img_path}__CS__B_{B}"
+        compressor_state_path = f"{compressed_img_path_no_ext}_state.json"
 
 
     llc = looseless_compressor
