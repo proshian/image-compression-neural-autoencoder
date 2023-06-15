@@ -10,20 +10,22 @@ class LooselessCompressor:
             self.init_from_file(file_path)
         elif uncompressed_sequence is not None:
             self.init_from_sequence(uncompressed_sequence)
+        # It's allowed for the compressor to be initilized after creation.
+        # Thus we don't raise error here.
     
-    def init_from_sequence(file_path: str):
+    def init_from_sequence(self, file_path: str):
         raise NotImplementedError
     
-    def init_from_file(file_path: str):
+    def init_from_file(self, file_path: str):
         raise NotImplementedError
     
     def encode(self, symbol_sequence):
         raise NotImplementedError
     
-    def encode(self, symbol_sequence):
+    def decode(self, symbol_sequence):
         raise NotImplementedError
     
-    def save_state_to_file(file_path):
+    def save_state_to_file(self, file_path):
         raise NotImplementedError
 
 

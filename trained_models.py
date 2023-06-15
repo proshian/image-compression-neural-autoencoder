@@ -29,7 +29,7 @@ resnet18x32__512ch__abs__relu__no_last_activation = {
         "encoder": lambda: create_resnet_encoder(
             resnet18(), nn.Identity(), nn.Sigmoid()), 
         "decoder": lambda: SimpleResidualDecoder32x_ABS(
-            512, "upsample", nn.ReLU())
+            512, "upsample", nn.ReLU()),
     },
     "weights": {
         "B1": {
@@ -59,18 +59,45 @@ resnet18x32__512ch__abs__relu__no_last_activation = {
         "B6": {
             "encoder": 'weights/resnet_autoencoder_abs/'
                 'encoder__resnet_autoencoder__512x16x16__upsample__' \
-                'B_6__63_epochs__last_relu__2023-06-08T05_56.pt',
+                'B_6__13_epochs__last_relu__2023-06-14T01_07.pt',
             "decoder": 'weights/resnet_autoencoder_abs/'
                 'decoder__resnet_autoencoder__512x16x16__upsample__' \
-                'B_6__63_epochs__last_relu__2023-06-08T05_56.pt',
+                'B_6__13_epochs__last_relu__2023-06-14T01_07.pt',
         },
     }
 }
 
 
+
+
+
+resnet18x32__512ch__abs__relu__no_last_activation__uniform_noise = {
+    "creation": {
+        "encoder": lambda: create_resnet_encoder(
+            resnet18(), nn.Identity(), nn.Sigmoid()), 
+        "decoder": lambda: SimpleResidualDecoder32x_ABS(
+            512, "upsample", nn.ReLU()),
+    },
+    "weights": {
+        "B2": {
+            "encoder": 'weights/resnet_autoencoder_abs/' \
+                'encoder__resnet_autoencoder__512x16x16__upsample__' \
+                'B_2__6_epochs__uniform__last_relu__2023-06-14T14_18.pt',
+            "decoder": 'weights/resnet_autoencoder_abs/' \
+                'decoder__resnet_autoencoder__512x16x16__upsample__' \
+                'B_2__6_epochs__uniform__last_relu__2023-06-14T14_18.pt',
+        }
+    }
+}
+
+
+
+
+
 model_dicts = {
     "resnet18x32__512ch__abs__sigmoid__no_last_activation": resnet18x32__512ch__abs__sigmoid__no_last_activation,
-    'resnet18x32__512ch__abs__relu__no_last_activation': resnet18x32__512ch__abs__relu__no_last_activation,
+    "resnet18x32__512ch__abs__relu__no_last_activation": resnet18x32__512ch__abs__relu__no_last_activation,
+    "resnet18x32__512ch__abs__relu__no_last_activation__uniform_noise": resnet18x32__512ch__abs__relu__no_last_activation__uniform_noise,
     "default": resnet18x32__512ch__abs__relu__no_last_activation
 }
 

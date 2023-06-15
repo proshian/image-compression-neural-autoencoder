@@ -337,6 +337,31 @@ class NeuralImageCompressor(nn.Module):
         out = out + quant_err
         out = self.decoder(out)
         return out
+    
+
+class NeuralImageCompressorUniformNoise(nn.Module):
+    def __init__(self,
+                 encoder: Encoder,
+                 decoder: nn.Module,
+                 B: int = 1):
+        super().__init__()
+        self.encoder = encoder
+        self.decoder = decoder
+        self.B = B
+    
+    @staticmethod
+    def _get_quantization_error(B: int, shape: Tuple[int, ...]):
+        min_noise = -1
+        max_noise = 1
+        quan_err = 0.5**B * (max_noise - min_noise) * (torch.rand(shape)) + min_noise
+        return quan_err
+    
+    def forward(self, x):
+        out = self.encoder(x)
+        quant_err = self._get_quantization_error(self.B, out.shape).to(out.device)
+        out = out + quant_err
+        out = self.decoder(out)
+        return out
 
 
 def create_resnet_autoencoder(resnet: ResNet, enc_feat_extract: nn.Module = nn.Identity(),

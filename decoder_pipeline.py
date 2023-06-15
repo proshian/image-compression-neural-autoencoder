@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 import os
 
 import torch
@@ -30,10 +30,18 @@ def decode_binary_file(filename):
     return str_with_padding[:pad_end]
 
 
-def get_quant_error(shape, B):
+def get_quant_error_normal(shape: Tuple[int, ...], B: int) -> torch.Tensor:
     mean = torch.full(shape, -0.5)
     std = torch.full(shape, 0.5)
     quan_err = 0.5**B * torch.normal(mean = mean, std = std)
+    return quan_err
+
+
+def get_quant_error_uniform(shape: Tuple[int, ...], B: int) -> torch.Tensor:
+    min_noise = -1
+    max_noise = 1
+    quan_err = 0.5**B * (max_noise - min_noise) * (torch.rand(shape)) + min_noise
+    return quan_err
 
 
 
@@ -63,7 +71,7 @@ def decoder_pipeline(decoder, compressed_img_path: str, B: int,
     
     # decoded_tensor_imagenet_norm = decoder(encoder_output.type(torch.float32))
     decoded_tensor_imagenet_norm = decoder(
-        encoder_output.type(torch.float32) + get_quant_error(encoder_output.shape, B))
+        encoder_output.type(torch.float32) + get_quant_error_normal(encoder_output.shape, B))
 
     decoded_tensor = denormalize_imagenet(
         decoded_tensor_imagenet_norm.squeeze(0))

@@ -96,16 +96,24 @@ def save_binary_string_to_file(binary_string, filename):
     with open(filename, 'wb') as f:
         f.write(binary_bytes)
 
+def get_default_compressed_img_path(img_path: str, B: int):
+    img_path_no_ext = os.path.splitext(img_path)[0]
+    return f"{img_path_no_ext}_B{B}.neural"
+
+def get_default_compressor_state_path(img_path: str, B: int):
+    img_path_no_ext = os.path.splitext(img_path)[0]
+    return f"{img_path_no_ext}_B{B}_state.json"
 
 def encoder_pipeline(encoder, img_path: str, B: int,
                      compressor_state_path: str = None,
                      compressed_img_path: str = None,
                      looseless_compressor: LooselessCompressor = Huffman()):
-    if compressed_img_path is None:
-        compressed_img_path = f"{os.path.splitext(img_path)[0]}.neural"
     
+    if compressed_img_path is None:
+        compressed_img_path = get_default_compressed_img_path(img_path, B)
+
     if compressor_state_path is None:
-        compressor_state_path = f"{img_path}__CS__B_{B}"
+        compressor_state_path = get_default_compressor_state_path(img_path, B)
 
     encoder.eval()
     img = img_path_to_model_input(img_path)
