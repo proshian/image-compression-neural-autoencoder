@@ -1,4 +1,4 @@
-from typing import List, Tuple, Callable
+from typing import List, Tuple, Callable, Optional
 import os
 
 import torch
@@ -52,26 +52,28 @@ def torch_img_to_np_img(tensor_img: torch.Tensor) -> np.ndarray:
     np_decoded_img = (np_decoded_img*255).astype(np.uint8)
     return np_decoded_img
 
-def decoder_pipeline(decoder, compressed_img_path: str, B: int,
-                     compressor_state_path: str = None,
-                     decoder_output_path: str = None,
-                     looseless_compressor: LooselessCompressor = Huffman(),
-                     get_noise: Callable = get_quant_error_normal,
-                     save_img = True):
-    compressed_img_path_no_ext = os.path.splitext(compressed_img_path)[0]
-    if decoder_output_path is None:
-        decoder_output_path = f"{compressed_img_path_no_ext}_decoder_output.bmp"
-    
-    if compressor_state_path is None:
-        compressor_state_path = f"{compressed_img_path_no_ext}_state.json"
 
-    llc = looseless_compressor
-    
+# def binarystring_to_decoder_input(binary_string: str, B: int,
+#                                   looseless_compressor: LooselessCompressor,
+#                                   decoder_in_channels: int) -> torch.Tensor:
+#     quantized = torch.tensor(looseless_compressor.decode(binary_string))
+#     dequantized = quantized / 2**B
+#     height = width = int((len(dequantized)/decoder_in_channels)**0.5)
+
+#     return dequantized.reshape(
+#         1, decoder_in_channels, height, width)
+
+
+def decoder_pipeline(decoder, compressed_img_path: str, B: int,
+                     compressor_state_path: str,
+                     decoder_output_path: Optional[str] = None,
+                     looseless_compressor: LooselessCompressor = Huffman(),
+                     get_noise: Callable = get_quant_error_normal):    
     decoder.eval()
 
     binary_string = decode_binary_file(compressed_img_path)
-    llc.init_from_file(compressor_state_path)
-    quantized = torch.tensor(llc.decode(binary_string))
+    looseless_compressor.init_from_file(compressor_state_path)
+    quantized = torch.tensor(looseless_compressor.decode(binary_string))
     dequantized = quantized / 2**B
     height = width = int((len(dequantized)/decoder.in_channels)**0.5)
 
@@ -87,7 +89,7 @@ def decoder_pipeline(decoder, compressed_img_path: str, B: int,
     
     np_decoded_img = torch_img_to_np_img(decoded_tensor)
     
-    if save_img:
+    if decoder_output_path is not None:
         pil_img = Image.fromarray(np_decoded_img, 'RGB')
         pil_img.save(decoder_output_path, "BMP")
     return np_decoded_img

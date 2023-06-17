@@ -177,4 +177,7 @@ cython_debug/
 
 
 weights/
-compression-lab-imgs/
+compression-lab-imgs/*
+!compression-lab-imgs/lena.png
+!compression-lab-imgs/baboon.png
+!compression-lab-imgs/peppers.png

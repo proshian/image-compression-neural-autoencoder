@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 import numbers
 import os
 
@@ -96,25 +96,12 @@ def save_binary_string_to_file(binary_string, filename):
     with open(filename, 'wb') as f:
         f.write(binary_bytes)
 
-def get_default_compressed_img_path(img_path: str, B: int):
-    img_path_no_ext = os.path.splitext(img_path)[0]
-    return f"{img_path_no_ext}_B{B}.neural"
 
-def get_default_compressor_state_path(img_path: str, B: int):
-    img_path_no_ext = os.path.splitext(img_path)[0]
-    return f"{img_path_no_ext}_B{B}_state.json"
 
 def encoder_pipeline(encoder, img_path: str, B: int,
-                     compressor_state_path: str = None,
-                     compressed_img_path: str = None,
+                     compressor_state_path: Optional[str] = None,
+                     compressed_img_path: Optional[str] = None,
                      looseless_compressor: LooselessCompressor = Huffman()):
-    
-    if compressed_img_path is None:
-        compressed_img_path = get_default_compressed_img_path(img_path, B)
-
-    if compressor_state_path is None:
-        compressor_state_path = get_default_compressor_state_path(img_path, B)
-
     encoder.eval()
     img = img_path_to_model_input(img_path)
     unsqueezed = img.unsqueeze(0)
@@ -123,7 +110,9 @@ def encoder_pipeline(encoder, img_path: str, B: int,
     # flat_out = quantized.flatten().cpu().detach().numpy()
     flat_out = [int(x) for x in quantized.flatten()]
     looseless_compressor.init_from_sequence(flat_out)
-    looseless_compressor.save_state_to_file(compressor_state_path)
+    if compressor_state_path is not None:
+        looseless_compressor.save_state_to_file(compressor_state_path)
     encoded = looseless_compressor.encode(flat_out)
-    save_binary_string_to_file(encoded, compressed_img_path)
+    if compressed_img_path is not None:
+        save_binary_string_to_file(encoded, compressed_img_path)
     return encoder_out, encoded  # for debug purposes only

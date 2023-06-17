@@ -1,4 +1,5 @@
 import argparse
+import os
 
 import torch
 
@@ -55,6 +56,14 @@ if __name__ == "__main__":
     else:
         raise NotImplementedError(
             "{args.looseless_compressor_name} is not emplemented")
+    
+    compressed_img_path_no_ext = os.path.splitext(args.compressed_img_path)[0]
+    if args.decode_output_path is None:
+        args.decode_output_path = f"{compressed_img_path_no_ext}_decoder_output.bmp"
+    
+    if args.compressor_state_path is None:
+        args.compressor_state_path = f"{compressed_img_path_no_ext}_state.json"
+
 
     decoder_pipeline(
         decoder, args.compressed_img_path, args.B, args.compressor_state_path,
