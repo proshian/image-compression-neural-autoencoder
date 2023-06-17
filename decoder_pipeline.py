@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List, Tuple, Callable
 import os
 
 import torch
@@ -43,19 +43,27 @@ def get_quant_error_uniform(shape: Tuple[int, ...], B: int) -> torch.Tensor:
     quan_err = 0.5**B * (max_noise - min_noise) * (torch.rand(shape)) + min_noise
     return quan_err
 
+def get_zero_noise(shape: Tuple[int, ...], B: int) -> torch.Tensor:
+    return torch.zeros(shape)
 
+def torch_img_to_np_img(tensor_img: torch.Tensor) -> np.ndarray:
+    np_decoded_img = tensor_img.cpu().detach().numpy().transpose(1,2,0)
+    np_decoded_img = np.clip(np_decoded_img, 0, 1)
+    np_decoded_img = (np_decoded_img*255).astype(np.uint8)
+    return np_decoded_img
 
 def decoder_pipeline(decoder, compressed_img_path: str, B: int,
                      compressor_state_path: str = None,
                      decoder_output_path: str = None,
-                     looseless_compressor: LooselessCompressor = Huffman()):
+                     looseless_compressor: LooselessCompressor = Huffman(),
+                     get_noise: Callable = get_quant_error_normal,
+                     save_img = True):
     compressed_img_path_no_ext = os.path.splitext(compressed_img_path)[0]
     if decoder_output_path is None:
         decoder_output_path = f"{compressed_img_path_no_ext}_decoder_output.bmp"
     
     if compressor_state_path is None:
         compressor_state_path = f"{compressed_img_path_no_ext}_state.json"
-
 
     llc = looseless_compressor
     
@@ -64,22 +72,22 @@ def decoder_pipeline(decoder, compressed_img_path: str, B: int,
     binary_string = decode_binary_file(compressed_img_path)
     llc.init_from_file(compressor_state_path)
     quantized = torch.tensor(llc.decode(binary_string))
-    encoder_output_flat = quantized / 2**B
-    height = width = int((len(encoder_output_flat)/decoder.in_channels)**0.5)
+    dequantized = quantized / 2**B
+    height = width = int((len(dequantized)/decoder.in_channels)**0.5)
 
-    encoder_output = encoder_output_flat.reshape(
+    encoder_output = dequantized.reshape(
         1, decoder.in_channels, height, width)
     
     # decoded_tensor_imagenet_norm = decoder(encoder_output.type(torch.float32))
     decoded_tensor_imagenet_norm = decoder(
-        encoder_output.type(torch.float32) + get_quant_error_normal(encoder_output.shape, B))
+        encoder_output.type(torch.float32) + get_noise(encoder_output.shape, B))
 
     decoded_tensor = denormalize_imagenet(
         decoded_tensor_imagenet_norm.squeeze(0))
     
-    np_decoded_img = decoded_tensor.cpu().detach().numpy().transpose(1,2,0)
-    np_decoded_img = np.clip(np_decoded_img, 0, 1)
-    np_decoded_img = (np_decoded_img*255).astype(np.uint8)
-    pil_img = Image.fromarray(np_decoded_img, 'RGB')
-    pil_img.save(decoder_output_path, "BMP")
+    np_decoded_img = torch_img_to_np_img(decoded_tensor)
+    
+    if save_img:
+        pil_img = Image.fromarray(np_decoded_img, 'RGB')
+        pil_img.save(decoder_output_path, "BMP")
     return np_decoded_img

@@ -24,6 +24,7 @@ resnet18x32__512ch__abs__sigmoid__no_last_activation = {
     }
 }
 
+
 resnet18x32__512ch__abs__relu__no_last_activation = {
     "creation": {
         "encoder": lambda: create_resnet_encoder(
@@ -66,9 +67,6 @@ resnet18x32__512ch__abs__relu__no_last_activation = {
         },
     }
 }
-
-
-
 
 
 resnet18x32__512ch__abs__relu__no_last_activation__uniform_noise = {
