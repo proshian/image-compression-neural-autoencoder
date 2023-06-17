@@ -327,7 +327,8 @@ class NeuralImageCompressor(nn.Module):
     def _get_quantization_error(self, shape: Tuple[int, ...]):
         min_n = -0.5
         max_n = 0.5
-        quan_err = 0.5**self.B * (max_n - min_n) * torch.rand(shape) + min_n
+        rand0to1 = torch.rand(shape, requires_grad = True)
+        quan_err = 0.5**self.B * (max_n - min_n) * rand0to1 + min_n
         return quan_err
     
     def inference_forward(self, x):

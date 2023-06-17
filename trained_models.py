@@ -69,7 +69,7 @@ resnet18x32__512ch__abs__relu__no_last_activation__normal_noise = {
 }
 
 
-resnet18x32__512ch__abs__relu__no_last_activation = {
+resnet18x32__512ch__abs__relu__no_last_activation__uiniform_noise = {
     "creation": {
         "encoder": lambda: create_resnet_encoder(
             resnet18(), nn.Identity(), nn.Sigmoid()), 
@@ -89,8 +89,7 @@ resnet18x32__512ch__abs__relu__no_last_activation = {
 }
 
 
-
-resnet18x32__512ch__abs__relu__no_last_activation__uniform_noise = {
+resnet18x32__512ch__abs__relu__no_last_activation__uniform_noise_minus1_to_1 = {
     "creation": {
         "encoder": lambda: create_resnet_encoder(
             resnet18(), nn.Identity(), nn.Sigmoid()), 
@@ -113,12 +112,13 @@ resnet18x32__512ch__abs__relu__no_last_activation__uniform_noise = {
 
 
 
+
 model_dicts = {
     "resnet18x32__512ch__abs__sigmoid__no_last_activation": resnet18x32__512ch__abs__sigmoid__no_last_activation,
     "resnet18x32__512ch__abs__relu__no_last_activation": resnet18x32__512ch__abs__relu__no_last_activation__normal_noise,
-    "resnet18x32__512ch__abs__relu__no_last_activation__uniform_noise": resnet18x32__512ch__abs__relu__no_last_activation__uniform_noise,
-    "resnet18x32__512ch__abs__relu__no_last_activation": resnet18x32__512ch__abs__relu__no_last_activation,
-    "default": resnet18x32__512ch__abs__sigmoid__no_last_activation,
+    "resnet18x32__512ch__abs__relu__no_last_activation__uniform_noise_minus1_to_1": resnet18x32__512ch__abs__relu__no_last_activation__uniform_noise_minus1_to_1,
+    "resnet18x32__512ch__abs__relu__no_last_activation__uiniform_noise": resnet18x32__512ch__abs__relu__no_last_activation__uiniform_noise,
+    "default": resnet18x32__512ch__abs__relu__no_last_activation__uiniform_noise,
 }
 
 

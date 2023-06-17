@@ -40,7 +40,7 @@ def get_quant_error_normal(shape: Tuple[int, ...], B: int) -> torch.Tensor:
 def get_quant_error_uniform(shape: Tuple[int, ...], B: int) -> torch.Tensor:
     min_noise = -0.5
     max_noise = 0.5
-    quan_err = 0.5**B * (max_noise - min_noise) * (torch.rand(shape)) + min_noise
+    quan_err = 0.5**B * (max_noise - min_noise) * torch.rand(shape) + min_noise
     return quan_err
 
 def get_zero_noise(shape: Tuple[int, ...], B: int) -> torch.Tensor:
