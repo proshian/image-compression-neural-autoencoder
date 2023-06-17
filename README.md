@@ -49,9 +49,15 @@ python decode.py -i path/to/compressed_img -B b -s path/to/compressor_state
 ![Здесь должен быть график сравнивающий jpeg и кодек из данного репозитория на примере картинки baboon (bytes per pixel / psnr)](./readme_imgs/baboon__jpg_vs_mycodec.png)
 ![Здесь должен быть график сравнивающий jpeg и кодек из данного репозитория на примере картинки peppers (bytes per pixel / psnr)](./readme_imgs/peppers__jpg_vs_mycodec.png)
 
+### Сравнение реализованного кодека при B = 6 с JPEG
+![Здесь должно быть сравнение реализованного кодева при B = 6 с JPEG](./readme_imgs/B6_vs_JPG.png)
+
+### Сравнение реализованного кодека при B = 1 с JPEG
+![Здесь должно быть сравнение реализованного кодева при B = 1 с JPEG](./readme_imgs/B1_vs_JPG.png)
+
 ### Сравнение внешнего вида с оригиналом
-Результаты при B = 6:
+B = 6:
 ![Здесь должно быть изображение с результатами при B = 6](./readme_imgs/B6_results.png)
 
-Результаты при B = 1:
+B = 1:
 ![Здесь должно быть изображение с результатами при B = 6](./readme_imgs/B1_results.png)
