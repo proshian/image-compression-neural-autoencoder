@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, Callable
 
 import torch
 import torch.nn as nn
@@ -309,8 +309,7 @@ def create_resnet_encoder(
         backbone = create_resnet_encoder_backbone(resnet),
         feature_extraction = feature_extraction,
         normalising_activation = normalising_activation
-    )
-
+    )    
 
 
 ############# NeuralImageCompressors (Autoencoders)
@@ -319,16 +318,18 @@ class NeuralImageCompressor(nn.Module):
     def __init__(self,
                  encoder: Encoder,
                  decoder: nn.Module,
-                 B: int = 1):
+                 B: int,
+                 quantization_noise_func: Callable):
         super().__init__()
         self.encoder = encoder
+        self.quantization_noise_func
         self.decoder = decoder
         self.B = B
             
     def _get_quantization_error(self, shape: Tuple[int, ...]):
-        mean = torch.full(shape, -0.5)
-        std = torch.full(shape, 0.5)
-        quan_err = 0.5**self.B * torch.normal(mean = mean, std = std)
+        min_n = -0.5
+        max_n = 0.5
+        quan_err = 0.5**self.B * (max_n - min_n) * (torch.rand(shape)) + min_n
         return quan_err
     
     def forward(self, x):
@@ -339,7 +340,7 @@ class NeuralImageCompressor(nn.Module):
         return out
     
 
-class NeuralImageCompressorUniformNoise(nn.Module):
+class NeuralImageCompressorNormalNoise(nn.Module):
     def __init__(self,
                  encoder: Encoder,
                  decoder: nn.Module,
@@ -351,9 +352,9 @@ class NeuralImageCompressorUniformNoise(nn.Module):
     
     @staticmethod
     def _get_quantization_error(B: int, shape: Tuple[int, ...]):
-        min_noise = -1
-        max_noise = 1
-        quan_err = 0.5**B * (max_noise - min_noise) * (torch.rand(shape)) + min_noise
+        mean = torch.full(shape, -0.5)
+        std = torch.full(shape, 0.5)
+        quan_err = 0.5**B * torch.normal(mean = mean, std = std)
         return quan_err
     
     def forward(self, x):
