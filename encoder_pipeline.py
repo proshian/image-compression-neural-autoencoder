@@ -107,7 +107,6 @@ def encoder_pipeline(encoder, img_path: str, B: int,
     unsqueezed = img.unsqueeze(0)
     encoder_out = encoder(unsqueezed)
     quantized = quantize(encoder_out, B)
-    # flat_out = quantized.flatten().cpu().detach().numpy()
     flat_out = [int(x) for x in quantized.flatten()]
     looseless_compressor.init_from_sequence(flat_out)
     if compressor_state_path is not None:
