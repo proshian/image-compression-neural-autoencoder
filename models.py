@@ -318,19 +318,23 @@ class NeuralImageCompressor(nn.Module):
     def __init__(self,
                  encoder: Encoder,
                  decoder: nn.Module,
-                 B: int,
-                 quantization_noise_func: Callable):
+                 B: int):
         super().__init__()
         self.encoder = encoder
-        self.quantization_noise_func
         self.decoder = decoder
         self.B = B
             
     def _get_quantization_error(self, shape: Tuple[int, ...]):
         min_n = -0.5
         max_n = 0.5
-        quan_err = 0.5**self.B * (max_n - min_n) * (torch.rand(shape)) + min_n
+        quan_err = 0.5**self.B * (max_n - min_n) * torch.rand(shape) + min_n
         return quan_err
+    
+    def inference_forward(self, x):
+        out = self.encoder(x)
+        out = torch.round(out * 2**self.B) / 2**self.B
+        out = self.decoder(out)
+        return out
     
     def forward(self, x):
         out = self.encoder(x)
