@@ -68,7 +68,7 @@ def decoder_pipeline(decoder, compressed_img_path: str, B: int,
                      compressor_state_path: str,
                      decoder_output_path: Optional[str] = None,
                      looseless_compressor: LooselessCompressor = Huffman(),
-                     get_noise: Callable = get_zero_noise):    
+                     get_noise: Callable = get_quant_error_normal):    
     decoder.eval()
 
     binary_string = decode_binary_file(compressed_img_path)
