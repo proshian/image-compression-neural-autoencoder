@@ -361,6 +361,12 @@ class NeuralImageCompressor(nn.Module):
         quan_err = 0.5**B * torch.normal(mean = mean, std = std)
         return quan_err
     
+    def inference_forward(self, x):
+        out = self.encoder(x)
+        out = torch.round(out * 2**self.B) / 2**self.B
+        out = self.decoder(out)
+        return out
+    
     def forward(self, x):
         out = self.encoder(x)
         quant_err = self._get_quantization_error(self.B, out.shape).to(out.device)
