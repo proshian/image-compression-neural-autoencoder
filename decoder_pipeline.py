@@ -36,6 +36,10 @@ def get_quant_error_normal(shape: Tuple[int, ...], B: int) -> torch.Tensor:
     quan_err = 0.5**B * torch.normal(mean = mean, std = std)
     return quan_err
 
+def get_const_error(shape: Tuple[int, ...], B: int) -> torch.Tensor:
+    mean = torch.full(shape, -0.5)
+    quan_err = 0.5**B * mean
+    return quan_err
 
 def get_quant_error_uniform(shape: Tuple[int, ...], B: int) -> torch.Tensor:
     min_noise = -1
@@ -68,7 +72,7 @@ def decoder_pipeline(decoder, compressed_img_path: str, B: int,
                      compressor_state_path: str,
                      decoder_output_path: Optional[str] = None,
                      looseless_compressor: LooselessCompressor = Huffman(),
-                     get_noise: Callable = get_quant_error_normal):    
+                     get_noise: Callable = get_const_error):    
     decoder.eval()
 
     binary_string = decode_binary_file(compressed_img_path)

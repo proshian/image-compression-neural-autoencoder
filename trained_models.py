@@ -64,6 +64,7 @@ resnet18x32__512ch__abs__relu__no_last_activation = {
             "decoder": 'weights/resnet_autoencoder_abs/'
                 'decoder__resnet_autoencoder__512x16x16__upsample__' \
                 'B_6__13_epochs__last_relu__2023-06-14T01_07.pt',
+                #'B_6__6_epochs__last_relu__2023-06-18T17_42.pt',
         },
     }
 }
